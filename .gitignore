@@ -1,0 +1,11 @@
+*.vcxproj*
+Debug/
+Release/
+.vs/
+Build/
+*.pro
+*.pro.user
+*.gch
+Makefile*
+.qmake*
+object_script*
