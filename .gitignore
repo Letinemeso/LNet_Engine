@@ -9,3 +9,7 @@ Build/
 Makefile*
 .qmake*
 object_script*
+*o
+*.user
+*.so*
+
