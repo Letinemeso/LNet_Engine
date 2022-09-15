@@ -25,6 +25,7 @@ namespace LNet
 		~Pointer_Wrapper();
 
 	public:
+		operator bool() const;
 		Type* operator->();
 		const Type* operator->() const;
 		Type* extract_pointer();
@@ -62,6 +63,12 @@ namespace LNet
 	}
 
 
+
+	template<typename Type>
+	Pointer_Wrapper<Type>::operator bool() const
+	{
+		return m_raw_ptr != nullptr;
+	}
 
 	template<typename Type>
 	Type* Pointer_Wrapper<Type>::operator->()

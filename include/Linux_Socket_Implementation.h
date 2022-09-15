@@ -25,6 +25,7 @@ namespace LNet
 
 	public:
 		static Client_Socket_Ptr create(const std::string& _connect_to, int _port);
+		~Client_Socket_Impl();
 
 	public:
 		void send_message(const std::string &_msg) const override;
@@ -50,6 +51,7 @@ namespace LNet
 		static Pointer_Wrapper<Client_Socket> create(raw_socket_t _client_connection_socket,
 													 std::string&& _ip_adress,
 													 int _port);
+		~Connected_Client();
 
 	public:
 		void send_message(const std::string &_msg) const override;
@@ -70,9 +72,8 @@ namespace LNet
 		Server_Socket_Impl(const Server_Socket_Impl& _other) = delete;
 
 	public:
-//		Server_Socket_Impl(Server_Socket_Impl&& _other);
-
 		static Server_Socket_Ptr create(int _port);
+		~Server_Socket_Impl();
 
 	public:
 		Client_Socket_Ptr wait_for_connection() override;

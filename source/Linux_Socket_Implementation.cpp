@@ -46,6 +46,11 @@ Client_Socket_Ptr Client_Socket_Impl::create(const std::string &_connect_to, int
 	return Client_Socket_Ptr(raw_result);
 }
 
+Client_Socket_Impl::~Client_Socket_Impl()
+{
+	close(m_raw_socket);
+}
+
 
 
 void Client_Socket_Impl::send_message(const std::string &_msg) const
@@ -94,6 +99,11 @@ Client_Socket_Ptr Connected_Client::create(raw_socket_t _client_connection_socke
 	return Client_Socket_Ptr(raw_result);
 }
 
+Connected_Client::~Connected_Client()
+{
+	close(m_raw_socket);
+}
+
 
 
 void Connected_Client::send_message(const std::string &_msg) const
@@ -114,6 +124,7 @@ Message Connected_Client::listen_to_message() const
 		result.type = Message::Type::disconnect;
 	if(real_length > 0)
 	{
+		buffer[real_length] = 0;
 		result.type = Message::Type::message;
 		result.message = buffer;
 	}
@@ -136,7 +147,7 @@ Server_Socket_Impl::Server_Socket_Impl() : Server_Socket()
 //}
 
 
-Pointer_Wrapper<Server_Socket> Server_Socket_Impl::create(int _port)
+Server_Socket_Ptr Server_Socket_Impl::create(int _port)
 {
 	int sockfd;
 	sockaddr_in serv_addr;
@@ -158,6 +169,12 @@ Pointer_Wrapper<Server_Socket> Server_Socket_Impl::create(int _port)
 	return Pointer_Wrapper<Server_Socket>(raw_result);
 }
 
+Server_Socket_Impl::~Server_Socket_Impl()
+{
+	stop_waiting_for_connection();
+	close(m_raw_socket);
+}
+
 
 
 Client_Socket_Ptr Server_Socket_Impl::wait_for_connection()
@@ -177,7 +194,7 @@ Client_Socket_Ptr Server_Socket_Impl::wait_for_connection()
 
 void Server_Socket_Impl::stop_waiting_for_connection()
 {
-	//	do smth
+	shutdown(m_raw_socket, SHUT_RD);
 }
 
 

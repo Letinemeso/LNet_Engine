@@ -1,0 +1,5 @@
+сделать систему отслеживания ошибок для сокетов
+
+проверить: возможны утечки памяти в Client_Socket_Impl::create(...) (endhostent())
+
+сделать Connection_Manager
