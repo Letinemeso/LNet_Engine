@@ -28,9 +28,11 @@ Client_Socket_Ptr Client_Socket_Impl::create(const std::string &_connect_to, int
 
 	for(unsigned int i = 0; i < (unsigned int)server->h_length; ++i)
 		((char*)&serv_addr.sin_addr.s_addr)[i] = server->h_addr[i];
+	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(_port);
 
-	delete server;	//	TODO: this may cause memory leak: hostent contains raw pointers
+//	delete server;	//	TODO: this may cause memory leak: hostent contains raw pointers
+	endhostent();
 
 	if (connect(sockfd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 	{
