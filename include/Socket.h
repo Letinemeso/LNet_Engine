@@ -9,17 +9,33 @@
 namespace LNet
 {
 
+	struct Message
+	{
+		enum class Type
+		{
+			error = 0,
+			disconnect,
+			message
+		};
+		Type type;
+		std::string message;
+	};
+
+
+
 	class Client_Socket
 	{
-	private:
-		Client_Socket() { }
+	protected:
+		Client_Socket();
 		Client_Socket(const Client_Socket& _other) = delete;
 
 	public:
-		Client_Socket(Client_Socket&& _other);
+//		Client_Socket(Client_Socket&& _other);
 		virtual ~Client_Socket();
 
 	public:
+		virtual void send_message(const std::string& _msg) const = 0;
+		virtual Message listen_to_message() const = 0;
 
 
 	};
@@ -27,19 +43,20 @@ namespace LNet
 
 
 
+
 	class Server_Socket
 	{
-	private:
-		Server_Socket() { }
+	protected:
+		Server_Socket();
 		Server_Socket(const Server_Socket& _other) = delete;
 
 	public:
-		Server_Socket(Server_Socket&& _other);
+//		Server_Socket(Server_Socket&& _other);
 		virtual ~Server_Socket();
 
 	public:
-		Client_Socket_Ptr accept_connection() const;
-
+		virtual Client_Socket_Ptr wait_for_connection() = 0;
+		virtual void stop_waiting_for_connection() = 0;
 
 	};
 	typedef Pointer_Wrapper<Server_Socket> Server_Socket_Ptr;

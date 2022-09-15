@@ -25,8 +25,8 @@ namespace LNet
 		~Pointer_Wrapper();
 
 	public:
-		Type& operator->();
-		const Type& operator->() const;
+		Type* operator->();
+		const Type* operator->() const;
 		Type* extract_pointer();
 		void free();
 
@@ -64,15 +64,15 @@ namespace LNet
 
 
 	template<typename Type>
-	Type& Pointer_Wrapper<Type>::operator->()
+	Type* Pointer_Wrapper<Type>::operator->()
 	{
-		return *m_raw_ptr;
+		return m_raw_ptr;
 	}
 
 	template<typename Type>
-	const Type& Pointer_Wrapper<Type>::operator->() const
+	const Type* Pointer_Wrapper<Type>::operator->() const
 	{
-		return *m_raw_ptr;
+		return m_raw_ptr;
 	}
 
 	template<typename Type>
