@@ -35,7 +35,8 @@ namespace LNet
 
 	public:
 		virtual void send_message(const std::string& _msg) const = 0;
-		virtual Message listen_to_message() const = 0;
+		virtual void start_listening_to_message(void(*_on_message)(Message)) const = 0;
+		virtual void stop_listening_to_message() const = 0;
 
 
 	};

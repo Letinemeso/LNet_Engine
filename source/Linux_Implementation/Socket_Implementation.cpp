@@ -1,6 +1,26 @@
-#include "Linux_Socket_Implementation.h"
+#include "Linux_Implementation/Socket_Implementation.h"
 
 using namespace LNet;
+
+
+//	Debug stuff
+
+void LNet::___debug_linux_socket_log_func()
+{
+	if(errno == 0)
+		return;
+
+	int error_code = errno;
+	const char* error_message = strerror(errno);
+
+	std::string error_log_message;
+	error_log_message = "\nLinux Socket Error:\nError code: " + std::to_string(error_code) + "\nError description:\n" + error_message + "\n";
+
+	LNET_LOG("LINUX_SOCKET_LOG_LEVEL", error_log_message);
+
+	errno = 0;
+}
+
 
 
 //	Client_Socket_Impl
@@ -18,11 +38,16 @@ Client_Socket_Ptr Client_Socket_Impl::create(const std::string &_connect_to, int
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
+	{
+		LNET_DEBUG_FUNC_NOARG(___debug_linux_socket_log_func);
 		return Client_Socket_Ptr(nullptr);
+	}
 	server = gethostbyname(_connect_to.c_str());
 	if (!server)
 	{
 		close(sockfd);
+//		LNET_DEBUG_FUNC_NOARG(___debug_linux_socket_log_func);
+		LNET_LOG("LINUX_SOCKET_LOG_LEVEL", "Error: server with ip " + _connect_to + " not found\n");
 		return Client_Socket_Ptr(nullptr);
 	}
 
@@ -37,6 +62,7 @@ Client_Socket_Ptr Client_Socket_Impl::create(const std::string &_connect_to, int
 	if (connect(sockfd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 	{
 		close(sockfd);
+		LNET_DEBUG_FUNC_NOARG(___debug_linux_socket_log_func);
 		return Client_Socket_Ptr(nullptr);
 	}
 
@@ -59,23 +85,40 @@ void Client_Socket_Impl::send_message(const std::string &_msg) const
 //	return result >= 0;
 }
 
-Message Client_Socket_Impl::listen_to_message() const
+void Client_Socket_Impl::start_listening_to_message(void(*_on_message)(Message)) const
 {
-	char buffer[1024];
-	unsigned int real_length = read(m_raw_socket, buffer, 1024);
+	LNET_ASSERT(!m_is_listening);
 
-	Message result;
-	if(real_length < 0)
-		result.type = Message::Type::error;
-	if(real_length == 0)
-		result.type = Message::Type::disconnect;
-	if(real_length > 0)
+	std::thread listening_thread([_on_message, this]()
 	{
-		result.type = Message::Type::message;
-		result.message = buffer;
-	}
+		m_is_listening = true;
 
-	return result;
+		bool need_to_stop = false;
+		while(!need_to_stop)
+		{
+			char buffer[1024];
+			unsigned int real_length = read(m_raw_socket, buffer, 1024);
+
+			Message result;
+			if(real_length < 0)
+				result.type = Message::Type::error;
+			if(real_length == 0)
+				result.type = Message::Type::disconnect;
+			if(real_length > 0)
+			{
+				result.type = Message::Type::message;
+				result.message = buffer;
+			}
+
+		}
+
+	})
+
+
+
+
+
+//	return result;
 }
 
 
@@ -154,14 +197,20 @@ Server_Socket_Ptr Server_Socket_Impl::create(int _port)
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
+	{
+		LNET_DEBUG_FUNC_NOARG(___debug_linux_socket_log_func);
 		return Pointer_Wrapper<Server_Socket>(nullptr);
+	}
 	//	bzero((char *) &serv_addr, sizeof(serv_addr));
 	serv_addr.sin_addr.s_addr = 0;
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
 	serv_addr.sin_port = htons(_port);
 	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+	{
+		LNET_DEBUG_FUNC_NOARG(___debug_linux_socket_log_func);
 		return Pointer_Wrapper<Server_Socket>(nullptr);
+	}
 
 	Server_Socket_Impl* raw_result = new Server_Socket_Impl;
 	raw_result->m_raw_socket = sockfd;
@@ -179,6 +228,8 @@ Server_Socket_Impl::~Server_Socket_Impl()
 
 Client_Socket_Ptr Server_Socket_Impl::wait_for_connection()
 {
+	m_is_listening = true;
+
 	listen(m_raw_socket, 1);
 
 	sockaddr_in cli_addr;
@@ -186,14 +237,24 @@ Client_Socket_Ptr Server_Socket_Impl::wait_for_connection()
 
 	int raw_client_socket = accept(m_raw_socket, (sockaddr*)&cli_addr, &clilen);
 
-	if(raw_client_socket < 0)
+	m_is_listening = false;
+
+	if(raw_client_socket < 0 && !m_shut_down_manually)
+	{
+		LNET_DEBUG_FUNC_NOARG(___debug_linux_socket_log_func);
 		return Client_Socket_Ptr(nullptr);
+	}
+
+	m_shut_down_manually = false;
 
 	return Connected_Client::create(raw_client_socket, std::to_string(cli_addr.sin_addr.s_addr), cli_addr.sin_port);
 }
 
 void Server_Socket_Impl::stop_waiting_for_connection()
 {
+	LNET_ASSERT(m_is_listening);
+
+	m_shut_down_manually = true;
 	shutdown(m_raw_socket, SHUT_RD);
 }
 

@@ -1,24 +1,36 @@
-#ifndef __LINUX_SOCKET_IMPLEMENTATION
-#define __LINUX_SOCKET_IMPLEMENTATION
+#ifndef __SOCKET_IMPLEMENTATION
+#define __SOCKET_IMPLEMENTATION
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-//#include <unistd.h>
 #include <netdb.h>
 
+#include <string.h>
+#include <thread>
+
 #include "Socket.h"
+
+#include "Debug.h"
 
 
 namespace LNet
 {
+
+	void ___debug_linux_socket_log_func();
+
+
 
 	class Client_Socket_Impl : public Client_Socket
 	{
 	private:
 		using raw_socket_t = int;
 		raw_socket_t m_raw_socket = 0;
+
+	private:
+		mutable bool m_is_listening = false;
+		mutable bool m_shut_down_manually = false;
 
 	private:
 		Client_Socket_Impl();
@@ -29,7 +41,8 @@ namespace LNet
 
 	public:
 		void send_message(const std::string &_msg) const override;
-		Message listen_to_message() const override;
+		void start_listening_to_message(void(*_on_message)(Message)) const override;
+		void stop_listening_to_message() const override;
 
 	};
 
@@ -45,6 +58,10 @@ namespace LNet
 		int m_port = 0;
 
 	private:
+		bool m_is_listening = false;
+		bool m_shut_down_manually = false;
+
+	private:
 		Connected_Client();
 
 	public:
@@ -55,7 +72,8 @@ namespace LNet
 
 	public:
 		void send_message(const std::string &_msg) const override;
-		Message listen_to_message() const override;
+		void start_listening_to_message(void(*_on_message)(Message)) const override;
+		void stop_listening_to_message() const override;
 
 	};
 
@@ -66,6 +84,10 @@ namespace LNet
 	private:
 		using raw_socket_t = int;
 		raw_socket_t m_raw_socket = 0;
+
+	private:
+		bool m_is_listening = false;
+		bool m_shut_down_manually = false;
 
 	private:
 		Server_Socket_Impl();

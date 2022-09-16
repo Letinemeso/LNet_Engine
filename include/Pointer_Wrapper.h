@@ -22,6 +22,7 @@ namespace LNet
 		Pointer_Wrapper(Type* _data);
 		Pointer_Wrapper(Type* _data, free_func_t _free_func);
 		Pointer_Wrapper(Pointer_Wrapper&& _other);
+		void operator=(Pointer_Wrapper&& _other);
 		~Pointer_Wrapper();
 
 	public:
@@ -49,6 +50,15 @@ namespace LNet
 
 	template<typename Type>
 	Pointer_Wrapper<Type>::Pointer_Wrapper(Pointer_Wrapper&& _other)
+	{
+		m_raw_ptr = _other.m_raw_ptr;
+		m_free_func = _other.m_free_func;
+		_other.m_raw_ptr = nullptr;
+		_other.m_free_func = nullptr;
+	}
+
+	template<typename Type>
+	void Pointer_Wrapper<Type>::operator=(Pointer_Wrapper<Type>&& _other)
 	{
 		m_raw_ptr = _other.m_raw_ptr;
 		m_free_func = _other.m_free_func;
