@@ -15,6 +15,7 @@ namespace LNet
 		{
 			error = 0,
 			disconnect,
+			stop_listening,
 			message
 		};
 		Type type;
@@ -34,9 +35,9 @@ namespace LNet
 		virtual ~Client_Socket();
 
 	public:
-		virtual void send_message(const std::string& _msg) const = 0;
-		virtual void start_listening_to_message(void(*_on_message)(Message)) const = 0;
-		virtual void stop_listening_to_message() const = 0;
+		virtual void send_message(const std::string& _msg) = 0;
+		virtual Message listen_to_message() = 0;
+		virtual void stop_listening_to_message() = 0;
 
 
 	};
