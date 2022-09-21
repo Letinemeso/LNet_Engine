@@ -1,5 +1,5 @@
-сделать систему отслеживания ошибок для сокетов
+﻿Linux_Implementation: исправить ошибки сборки
 
-проверить: возможны утечки памяти в Client_Socket_Impl::create(...) (endhostent())
+Linux_Implementation: проверить: возможны утечки памяти в Client_Socket_Impl::create(...) (endhostent())
 
 сделать Connection_Manager
