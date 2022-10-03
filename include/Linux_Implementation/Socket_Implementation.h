@@ -40,9 +40,9 @@ namespace LNet
 		~Client_Socket_Impl();
 
 	public:
-		void send_message(const std::string &_msg) const override;
-		void start_listening_to_message(void(*_on_message)(Message)) const override;
-		void stop_listening_to_message() const override;
+		void send_message(const std::string &_msg) override;
+		Message listen_to_message() override;
+		void stop_listening_to_message() override;
 
 	};
 
@@ -71,9 +71,9 @@ namespace LNet
 		~Connected_Client();
 
 	public:
-		void send_message(const std::string &_msg) const override;
-		void start_listening_to_message(void(*_on_message)(Message)) const override;
-		void stop_listening_to_message() const override;
+		void send_message(const std::string &_msg) override;
+		Message listen_to_message() override;
+		void stop_listening_to_message() override;
 
 	};
 
